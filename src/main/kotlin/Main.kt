@@ -28,9 +28,10 @@ fun main() {
         else -> 60
     }
     screen.startScreen()
-    val startPosition = screen.cursorPosition.withColumn (colSize / 2 - printableWidth / 2).withRow(rowSize / 2)
+    val startPosition =
+        screen.cursorPosition.withColumn(colSize / 2 - printableWidth / 2).withRow((rowSize / 2.5).roundToInt())
     val lines = splitCharArrayByWidth(wordsFromFile, printableWidth)
-    screen.drawWords(lines, startPosition.column, startPosition.row)
+    screen.drawWords(lines, startPosition)
     var letter = 0
     var line = 0
     screen.cursorPosition = startPosition
@@ -69,7 +70,9 @@ fun main() {
                 } else if (line > 0) {
                     line--
                     letter = lines[line].size - 1
-                    screen.cursorPosition = screen.cursorPosition.withColumn(startPosition.column + lines[line].size -1).withRelativeRow(-1)
+                    screen.cursorPosition =
+                        screen.cursorPosition.withColumn(startPosition.column + lines[line].size - 1)
+                            .withRelativeRow(-1)
                     screen.drawCharacter(lines[line][letter], screen.cursorPosition, white)
                 }
             }
@@ -88,51 +91,75 @@ fun main() {
         totalWords = numberOfWordsToType,
         finalTime = elapsedTimeInSeconds,
         wpm = wpm.roundToInt(),
-        accuracy = accuracy
+        accuracy = accuracy,
+        position = screen.cursorPosition.withRelativeRow(+1).also { screen.cursorPosition = it }
     )
     if (accuracy < 100) {
-       // screen.drawExpectedActualResult(wordsFromFile, rawInput.toString())
-       /* println()
-        println("Expected:")
-        println(wordsFromFile)
-        println()
-        println("Actual:")
-        println(rawInput.toString())*/
+        screen.drawExpectedActualResult(
+            expected = lines,
+            actual = rawInput.toString(),
+            printableWidth = printableWidth,
+            position = screen.cursorPosition.withRelativeRow(+2).also { screen.cursorPosition = it }
+        )
     }
-    screen.drawEndPrompt()
+    screen.drawEndPrompt(
+        screen.cursorPosition.withRelativeRow(+1)
+    )
     screen.refresh()
     screen.readInput()
     screen.stopScreen()
-
 }
 
-fun Screen.drawEndPrompt() {
+fun Screen.drawEndPrompt(position: TerminalPosition) {
     val prompt = "Press any key to quit..."
     val size = this.terminalSize.columns
     val centeredCol = (size / 2) - (prompt.length / 2)
-    this.cursorPosition = this.cursorPosition.withColumn(centeredCol).withRelativeRow(+1)
-   this.newTextGraphics().putString(this.cursorPosition, prompt)
+    this.newTextGraphics().putString(
+        position.withColumn(centeredCol).also { this.cursorPosition = it.withRelativeColumn(prompt.length) },
+        prompt,
+    )
 }
 
-fun Screen.drawExpectedActualResult(expected: String, actual: String) {
-
+fun Screen.drawExpectedActualResult(
+    expected: List<List<Char>>,
+    actual: String,
+    printableWidth: Int,
+    position: TerminalPosition
+) {
+    this.newTextGraphics().putString(position, "Expected: ")
+    this.drawWords(
+        expected,
+        this.cursorPosition.withColumn(this.terminalSize.columns / 2 - printableWidth / 2).withRelativeRow(+1)
+    )
+    val actualSplitByWidth = splitCharArrayByWidth(actual.toCharArray(), printableWidth)
+    this.newTextGraphics().putString(this.cursorPosition.withRelativeRow(+1), "Actual: ")
+    this.drawWords(
+        actualSplitByWidth,
+        this.cursorPosition.withColumn(this.terminalSize.columns / 2 - printableWidth / 2).withRelativeRow(+2)
+    )
 }
 
-fun Screen.drawWpmResult(totalWords: Int, finalTime: Long, wpm: Int, accuracy: Int) {
+fun Screen.drawWpmResult(
+    totalWords: Int,
+    finalTime: Long,
+    wpm: Int,
+    accuracy: Int,
+    position: TerminalPosition
+) {
     val resultString = "$totalWords words typed in $finalTime seconds - WPM: $wpm - Acc: $accuracy%"
     val size = this.terminalSize.columns
     val centeredCol = (size / 2) - (resultString.length / 2)
-    this.cursorPosition = this.cursorPosition.withColumn(centeredCol).withRelativeRow(+1)
-    this.newTextGraphics().putString(this.cursorPosition, resultString)
+    this.newTextGraphics().putString(position.withColumn(centeredCol), resultString)
 }
 
-fun Screen.drawWords(words: List<List<Char>>, colPos: Int, rowPos: Int) {
+fun Screen.drawWords(words: List<List<Char>>, position: TerminalPosition) {
     val text = this.newTextGraphics()
-    var row = rowPos
+    var position = position
     words.forEach {
-        text.putString(colPos, row, it.joinToString(separator = ""))
-        row++
+        text.putString(position, it.joinToString(separator = ""))
+        position = position.withRelativeRow(+1)
     }
+    this.cursorPosition = position
 }
 
 fun Screen.drawCharacter(char: Char, position: TerminalPosition, color: TextColor.RGB) {
