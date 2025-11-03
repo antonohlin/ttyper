@@ -1,3 +1,4 @@
+import com.googlecode.lanterna.input.KeyStroke
 import java.io.File
 
 fun readDictionary(numberOfWordsToType: Int): List<String> {
@@ -30,4 +31,9 @@ fun splitCharArrayByWidth(input: CharArray, maxPrintableWidth: Int): List<List<C
         startIndex = endIndex
     }
     return result
+}
+
+fun KeyStroke.isNumber(): Boolean {
+    val numbers = listOf('1', '2', '3', '4', '5', '6', '7', '8', '9', '0')
+    return this.character in numbers
 }
