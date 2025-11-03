@@ -13,6 +13,7 @@ repositories {
 
 dependencies {
     implementation("com.googlecode.lanterna:lanterna:3.1.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     testImplementation(kotlin("test"))
 }
 

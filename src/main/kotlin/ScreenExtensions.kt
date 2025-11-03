@@ -2,6 +2,7 @@ import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TextCharacter.fromCharacter
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.screen.Screen
+import java.util.Properties
 
 fun Screen.drawEndPrompt(position: TerminalPosition) {
     val prompt = "Press any key to quit..."
@@ -60,4 +61,10 @@ fun Screen.drawCharacter(char: Char, position: TerminalPosition, color: TextColo
     tc.firstOrNull()?.let {
         this.setCharacter(position, it.withForegroundColor(color))
     }
+}
+
+fun Screen.drawSettings(setting: Boolean) {
+    val padding = 3
+    this.newTextGraphics().putString(0, 0, "1. Detailed Result")
+    this.newTextGraphics().putString(padding, 1, "[$setting] ")
 }
