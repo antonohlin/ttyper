@@ -1,5 +1,5 @@
-import com.googlecode.lanterna.input.KeyStroke
 import java.io.File
+import kotlin.math.roundToInt
 
 fun readDictionary(numberOfWordsToType: Int): List<String> {
     val input = File("src/main/kotlin/dictionary")
@@ -33,7 +33,16 @@ fun splitCharArrayByWidth(input: CharArray, maxPrintableWidth: Int): List<List<C
     return result
 }
 
-fun KeyStroke.isNumber(): Boolean {
-    val numbers = listOf('1', '2', '3', '4', '5', '6', '7', '8', '9', '0')
-    return this.character in numbers
+fun getEndGameStats(
+    startTime: Long,
+    numberOfWordsToType: Int,
+    totalCharacters: Int,
+    errorCount: Int
+): EndGameStats {
+    val endTime = System.currentTimeMillis()
+    val elapsedTimeInSeconds = (endTime - startTime) / 1000
+    val wpm = ((numberOfWordsToType.toDouble() / elapsedTimeInSeconds.toDouble()) * 60).roundToInt()
+    val rawAccuracy = ((totalCharacters - errorCount).toDouble() / totalCharacters.toDouble() * 100)
+    val accuracy = rawAccuracy.coerceIn(0.0, 100.0).roundToInt()
+    return EndGameStats(wpm, elapsedTimeInSeconds, accuracy)
 }
