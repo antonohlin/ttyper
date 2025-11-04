@@ -5,7 +5,7 @@ import com.googlecode.lanterna.screen.Screen
 import java.util.Properties
 
 fun Screen.drawEndPrompt(position: TerminalPosition) {
-    val prompt = "Press any key to quit..."
+    val prompt = "Press Q to quit or R to replay"
     val size = this.terminalSize.columns
     val centeredCol = (size / 2) - (prompt.length / 2)
     this.newTextGraphics().putString(
