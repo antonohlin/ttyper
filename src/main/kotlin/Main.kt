@@ -2,12 +2,10 @@ import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.screen.TerminalScreen
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 
 val green = TextColor.RGB(100, 200, 100)
@@ -41,62 +39,60 @@ fun main() {
     screen.drawWords(lines, startPosition)
     screen.cursorPosition = startPosition
     screen.refresh()
-    runBlocking {
-        val settingsJob = launch {
-            settingsManager.settings.collectLatest { value ->
-                screen.drawSettings(value)
-                screen.refresh()
-            }
+    val scope = CoroutineScope(Dispatchers.IO)
+    scope.launch {
+        settingsManager.settings.collectLatest { value ->
+            screen.drawSettings(value)
+            screen.refresh()
         }
-        while (line < lines.size) {
-            while (letter < lines[line].size) {
-                val key = withContext(Dispatchers.IO) { screen.readInput() }
-                if (key.isNumber()) {
-                    settingsManager.toggleSetting()
-                    break
-                }
-                if (!timerHasBeenStarted) {
-                    startTime = System.currentTimeMillis()
-                    timerHasBeenStarted = true
-                }
-                if (key.keyType != KeyType.Backspace) {
-                    rawInput.append(key.character)
-                    if (key.character == lines[line][letter]) {
-                        screen.drawCharacter(key.character, screen.cursorPosition, green)
-                    } else {
-                        errorCount++
-                        screen.drawCharacter(lines[line][letter], screen.cursorPosition, red)
-                    }
-                    screen.cursorPosition = screen.cursorPosition.withRelativeColumn(+1)
-                    if (letter + 1 == lines[line].size) {
-                        screen.cursorPosition =
-                            screen.cursorPosition.withColumn(startPosition.column).withRelativeRow(+1)
-                        letter = 0
-                        line++
-                        screen.refresh()
-                        break
-                    } else {
-                        letter++
-                    }
+    }
+    while (line < lines.size) {
+        while (letter < lines[line].size) {
+            val key = screen.readInput()
+            if (key.isNumber()) {
+                settingsManager.toggleSetting()
+                break
+            }
+            if (!timerHasBeenStarted) {
+                startTime = System.currentTimeMillis()
+                timerHasBeenStarted = true
+            }
+            if (key.keyType != KeyType.Backspace) {
+                rawInput.append(key.character)
+                if (key.character == lines[line][letter]) {
+                    screen.drawCharacter(key.character, screen.cursorPosition, green)
                 } else {
-                    rawInput.append('·')
-                    if (letter > 0) {
-                        letter--
-                        screen.cursorPosition = screen.cursorPosition.withRelativeColumn(-1)
-                        screen.drawCharacter(lines[line][letter], screen.cursorPosition, white)
-                    } else if (line > 0) {
-                        line--
-                        letter = lines[line].size - 1
-                        screen.cursorPosition =
-                            screen.cursorPosition.withColumn(startPosition.column + lines[line].size - 1)
-                                .withRelativeRow(-1)
-                        screen.drawCharacter(lines[line][letter], screen.cursorPosition, white)
-                    }
+                    errorCount++
+                    screen.drawCharacter(lines[line][letter], screen.cursorPosition, red)
                 }
-                screen.refresh()
+                screen.cursorPosition = screen.cursorPosition.withRelativeColumn(+1)
+                if (letter + 1 == lines[line].size) {
+                    screen.cursorPosition =
+                        screen.cursorPosition.withColumn(startPosition.column).withRelativeRow(+1)
+                    letter = 0
+                    line++
+                    screen.refresh()
+                    break
+                } else {
+                    letter++
+                }
+            } else {
+                rawInput.append('·')
+                if (letter > 0) {
+                    letter--
+                    screen.cursorPosition = screen.cursorPosition.withRelativeColumn(-1)
+                    screen.drawCharacter(lines[line][letter], screen.cursorPosition, white)
+                } else if (line > 0) {
+                    line--
+                    letter = lines[line].size - 1
+                    screen.cursorPosition =
+                        screen.cursorPosition.withColumn(startPosition.column + lines[line].size - 1)
+                            .withRelativeRow(-1)
+                    screen.drawCharacter(lines[line][letter], screen.cursorPosition, white)
+                }
             }
+            screen.refresh()
         }
-        settingsJob.cancelAndJoin()
     }
     val endTime = System.currentTimeMillis()
     val elapsedTimeInSeconds = (endTime - startTime) / 1000
