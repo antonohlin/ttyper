@@ -112,7 +112,6 @@ fun main() {
         )
         if (endGameStats.accuracy < 100) {
             screen.drawExpectedActualResult(
-                expected = lines,
                 actual = rawInput.toString(),
                 printableWidth = printableWidth,
                 position = screen.cursorPosition.withRelativeRow(+2).also { screen.cursorPosition = it }

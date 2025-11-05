@@ -15,21 +15,15 @@ fun Screen.drawEndPrompt(position: TerminalPosition) {
 }
 
 fun Screen.drawExpectedActualResult(
-    expected: List<List<Char>>,
     actual: String,
     printableWidth: Int,
     position: TerminalPosition
 ) {
-    this.newTextGraphics().putString(position, "Expected: ")
-    this.drawWords(
-        expected,
-        this.cursorPosition.withColumn(this.terminalSize.columns / 2 - printableWidth / 2).withRelativeRow(+1)
-    )
     val actualSplitByWidth = splitCharArrayByWidth(actual.toCharArray(), printableWidth)
-    this.newTextGraphics().putString(this.cursorPosition.withRelativeRow(+1), "Actual: ")
+    this.newTextGraphics().putString(position, "Actual: ")
     this.drawWords(
         actualSplitByWidth,
-        this.cursorPosition.withColumn(this.terminalSize.columns / 2 - printableWidth / 2).withRelativeRow(+2)
+        this.cursorPosition.withColumn(this.terminalSize.columns / 2 - printableWidth / 2).withRelativeRow(+1)
     )
 }
 
