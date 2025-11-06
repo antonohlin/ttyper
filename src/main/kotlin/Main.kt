@@ -67,10 +67,10 @@ fun main() {
                         errorCount++
                         screen.drawCharacter(lines[line][letter], screen.cursorPosition, red)
                     }
-                    screen.cursorPosition = screen.cursorPosition.withRelativeColumn(+1)
+                    screen.cursorPosition = screen.cursorPosition.withRelativeColumn(1)
                     if (letter + 1 == lines[line].size) {
                         screen.cursorPosition =
-                            screen.cursorPosition.withColumn(startPosition.column).withRelativeRow(+1)
+                            screen.cursorPosition.withColumn(startPosition.column).withRelativeRow(1)
                         letter = 0
                         line++
                         screen.refresh()
@@ -108,17 +108,19 @@ fun main() {
             finalTime = endGameStats.time,
             wpm = endGameStats.wpm,
             accuracy = endGameStats.accuracy,
-            position = screen.cursorPosition.withRelativeRow(+1).also { screen.cursorPosition = it }
+            position = screen.cursorPosition.withRelativeRow(1).also { screen.cursorPosition = it }
         )
-        if (endGameStats.accuracy < 100) {
+        val shouldDrawExpectedActualResult = endGameStats.accuracy < 100 && settingsManager.settings.value
+        if (shouldDrawExpectedActualResult) {
             screen.drawExpectedActualResult(
                 actual = rawInput.toString(),
                 printableWidth = printableWidth,
-                position = screen.cursorPosition.withRelativeRow(+2).also { screen.cursorPosition = it }
+                position = screen.cursorPosition.withRelativeRow(2).also { screen.cursorPosition = it }
             )
         }
+        val rowBump = if (shouldDrawExpectedActualResult) 1 else 2
         screen.drawEndPrompt(
-            screen.cursorPosition.withRelativeRow(+1)
+            screen.cursorPosition.withRelativeRow(rowBump)
         )
         screen.refresh()
         var awaitingTerminationInput = true
