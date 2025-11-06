@@ -23,7 +23,7 @@ fun Screen.drawExpectedActualResult(
     this.newTextGraphics().putString(position, "Actual: ")
     this.drawWords(
         actualSplitByWidth,
-        this.cursorPosition.withColumn(this.terminalSize.columns / 2 - printableWidth / 2).withRelativeRow(+1)
+        this.cursorPosition.withColumn(this.terminalSize.columns / 2 - printableWidth / 2).withRelativeRow(1)
     )
 }
 
