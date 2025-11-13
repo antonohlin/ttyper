@@ -52,7 +52,7 @@ fun main() {
             while (letter < lines[line].size) {
                 val key = screen.readInput()
                 if (key.character.isDigit()) {
-                    settingsManager.toggleSetting()
+                    settingsManager.toggleSetting(key.character)
                     break
                 }
                 if (!timerHasBeenStarted) {
@@ -110,7 +110,8 @@ fun main() {
             accuracy = endGameStats.accuracy,
             position = screen.cursorPosition.withRelativeRow(1).also { screen.cursorPosition = it }
         )
-        val shouldDrawExpectedActualResult = endGameStats.accuracy < 100 && settingsManager.settings.value
+        val shouldDrawExpectedActualResult =
+            endGameStats.accuracy < 100 && settingsManager.settings.value.detailedResult
         if (shouldDrawExpectedActualResult) {
             screen.drawExpectedActualResult(
                 actual = rawInput.toString(),
@@ -128,7 +129,7 @@ fun main() {
             val endPromptInput = screen.readInput()
             when (endPromptInput.character.lowercaseChar()) {
                 in '0'..'9' -> {
-                    settingsManager.toggleSetting()
+                    settingsManager.toggleSetting(endPromptInput.character)
                 }
 
                 'q' -> {

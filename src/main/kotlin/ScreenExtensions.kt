@@ -57,8 +57,8 @@ fun Screen.drawCharacter(char: Char, position: TerminalPosition, color: TextColo
     }
 }
 
-fun Screen.drawSettings(setting: Boolean) {
+fun Screen.drawSettings(settings: Settings) {
     val padding = 3
     this.newTextGraphics().putString(0, 0, "1. Detailed Result")
-    this.newTextGraphics().putString(padding, 1, "[$setting] ")
+    this.newTextGraphics().putString(padding, 1, "[${settings.detailedResult}] ")
 }
