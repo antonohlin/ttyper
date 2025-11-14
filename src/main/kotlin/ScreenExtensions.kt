@@ -2,7 +2,6 @@ import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TextCharacter.fromCharacter
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.screen.Screen
-import java.util.Properties
 
 fun Screen.drawEndPrompt(position: TerminalPosition) {
     val prompt = "Press Q to quit or R to replay"
@@ -62,6 +61,8 @@ fun Screen.drawSettings(settings: Settings) {
     val detailedResultSetting = "1. Detailed Result"
     this.newTextGraphics().putString(0, 0, detailedResultSetting)
     this.newTextGraphics().putString(padding, 1, "[${settings.detailedResult}] ")
-    this.newTextGraphics().putString(detailedResultSetting.length + 3, 0, "2. Words")
-    this.newTextGraphics().putString(detailedResultSetting.length + 3 + padding, 1, "[${settings.numberOfWords}]")
+    val numberOfWordsSetting = "2. Words"
+    this.newTextGraphics().putString(detailedResultSetting.length + padding, 0, numberOfWordsSetting)
+    this.newTextGraphics().putString(detailedResultSetting.length + (padding*2), 1, "[${settings.numberOfWords}]")
+    // todo: figure out a better way to draw this
 }

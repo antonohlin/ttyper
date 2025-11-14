@@ -6,7 +6,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
 
 val green = TextColor.RGB(100, 200, 100)
 val red = TextColor.RGB(250, 90, 90)
@@ -40,7 +39,7 @@ fun main() {
             else -> 60
         }
         val startPosition =
-            screen.cursorPosition.withColumn(colSize / 2 - printableWidth / 2).withRow((rowSize / 2.5).roundToInt())
+            screen.cursorPosition.withColumn(colSize / 2 - printableWidth / 2).withRow((rowSize / 3))
         val lines = splitCharArrayByWidth(wordsFromFile, printableWidth)
         var letter = 0
         var line = 0
@@ -152,6 +151,7 @@ fun main() {
                 }
             }
         }
+        screen.clear()
         abortGameRound = false
     }
     screen.stopScreen()
