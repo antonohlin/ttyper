@@ -18,7 +18,7 @@ fun main() {
     val settingsManager = SettingsManager()
     val colSize = screen.terminalSize.columns
     val rowSize = screen.terminalSize.rows
-    val numberOfWordsToType = 20
+    var abortGameRound = false
     val scope = CoroutineScope(Dispatchers.IO)
     scope.launch {
         settingsManager.settings.collectLatest { value ->
@@ -29,7 +29,7 @@ fun main() {
     screen.startScreen()
     var running = true
     while (running) {
-        val wordsFromFile = readDictionary(numberOfWordsToType).joinToString(separator = " ").toCharArray()
+        val wordsFromFile = readDictionary(settingsManager.settings.value.numberOfWords).joinToString(separator = " ").toCharArray()
         var timerHasBeenStarted = false
         var startTime: Long = 0
         val rawInput = StringBuilder()
@@ -48,11 +48,15 @@ fun main() {
         screen.drawWords(lines, startPosition)
         screen.cursorPosition = startPosition
         screen.refresh()
-        while (line < lines.size) {
+        while (line < lines.size && !abortGameRound) {
             while (letter < lines[line].size) {
                 val key = screen.readInput()
                 if (key.character.isDigit()) {
-                    settingsManager.toggleSetting(key.character)
+                    val setting = key.character.toSetting()
+                    settingsManager.toggleSetting(setting)
+                    if (setting == Setting.NUMBER_OF_WORDS) {
+                        abortGameRound = true
+                    }
                     break
                 }
                 if (!timerHasBeenStarted) {
@@ -96,53 +100,59 @@ fun main() {
                 screen.refresh()
             }
         }
-        val endGameStats = getEndGameStats(
-            startTime,
-            numberOfWordsToType,
-            wordsFromFile.size,
-            errorCount,
-        )
-        terminal.resetColorAndSGR()
-        screen.drawWpmResult(
-            totalWords = numberOfWordsToType,
-            finalTime = endGameStats.time,
-            wpm = endGameStats.wpm,
-            accuracy = endGameStats.accuracy,
-            position = screen.cursorPosition.withRelativeRow(1).also { screen.cursorPosition = it }
-        )
-        val shouldDrawExpectedActualResult =
-            endGameStats.accuracy < 100 && settingsManager.settings.value.detailedResult
-        if (shouldDrawExpectedActualResult) {
-            screen.drawExpectedActualResult(
-                actual = rawInput.toString(),
-                printableWidth = printableWidth,
-                position = screen.cursorPosition.withRelativeRow(2).also { screen.cursorPosition = it }
+        if (!abortGameRound) {
+            val endGameStats = getEndGameStats(
+                startTime,
+                settingsManager.settings.value.numberOfWords,
+                wordsFromFile.size,
+                errorCount,
             )
-        }
-        val rowBump = if (shouldDrawExpectedActualResult) 1 else 2
-        screen.drawEndPrompt(
-            screen.cursorPosition.withRelativeRow(rowBump)
-        )
-        screen.refresh()
-        var awaitingTerminationInput = true
-        while (awaitingTerminationInput) {
-            val endPromptInput = screen.readInput()
-            when (endPromptInput.character.lowercaseChar()) {
-                in '0'..'9' -> {
-                    settingsManager.toggleSetting(endPromptInput.character)
-                }
+            terminal.resetColorAndSGR()
+            screen.drawWpmResult(
+                totalWords = settingsManager.settings.value.numberOfWords,
+                finalTime = endGameStats.time,
+                wpm = endGameStats.wpm,
+                accuracy = endGameStats.accuracy,
+                position = screen.cursorPosition.withRelativeRow(1).also { screen.cursorPosition = it }
+            )
+            val shouldDrawExpectedActualResult =
+                endGameStats.accuracy < 100 && settingsManager.settings.value.detailedResult
+            if (shouldDrawExpectedActualResult) {
+                screen.drawExpectedActualResult(
+                    actual = rawInput.toString(),
+                    printableWidth = printableWidth,
+                    position = screen.cursorPosition.withRelativeRow(2).also { screen.cursorPosition = it }
+                )
+            }
+            val rowBump = if (shouldDrawExpectedActualResult) 1 else 2
+            screen.drawEndPrompt(
+                screen.cursorPosition.withRelativeRow(rowBump)
+            )
+            screen.refresh()
+            var awaitingTerminationInput = true
+            while (awaitingTerminationInput) {
+                val endPromptInput = screen.readInput()
+                endPromptInput.character.lowercaseChar().apply {
+                    when {
+                        this.isDigit() -> {
+                            val setting = this.toSetting()
+                            settingsManager.toggleSetting(setting)
+                        }
 
-                'q' -> {
-                    awaitingTerminationInput = false
-                    running = false
-                }
+                        this == 'q' -> {
+                            awaitingTerminationInput = false
+                            running = false
+                        }
 
-                'r' -> {
-                    screen.clear()
-                    awaitingTerminationInput = false
+                        this == 'r' -> {
+                            screen.clear()
+                            awaitingTerminationInput = false
+                        }
+                    }
                 }
             }
         }
+        abortGameRound = false
     }
     screen.stopScreen()
 }
