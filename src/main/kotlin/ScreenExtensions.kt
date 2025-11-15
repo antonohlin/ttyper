@@ -58,10 +58,21 @@ fun Screen.drawCharacter(char: Char, position: TerminalPosition, color: TextColo
 
 fun Screen.drawSettings(settings: Settings) {
     val padding = 3
+    var columnPositon = 0
     val detailedResultSetting = "1. Detailed Result"
-    this.newTextGraphics().putString(0, 0, detailedResultSetting)
-    this.newTextGraphics().putString(padding, 1, "[${settings.detailedResult}] ")
+    this.newTextGraphics().putString(columnPositon, 0, detailedResultSetting)
+    this.newTextGraphics().putString(columnPositon + padding, 1, "[${settings.detailedResult}] ")
     val numberOfWordsSetting = "2. Words"
-    this.newTextGraphics().putString(detailedResultSetting.length + padding, 0, numberOfWordsSetting)
-    this.newTextGraphics().putString(detailedResultSetting.length + (padding*2), 1, "[${settings.numberOfWords}]")
+    columnPositon += detailedResultSetting.length
+    this.newTextGraphics().putString(columnPositon + padding, 0, numberOfWordsSetting)
+    this.newTextGraphics().putString(columnPositon + (padding*2), 1, "[${settings.numberOfWords}]")
+    val difficultySetting = "3. Difficulty"
+    columnPositon += numberOfWordsSetting.length
+    val difficultyValue = when (settings.difficulty){
+        Difficulty.EASY -> "[ea]"
+        Difficulty.MEDIUM -> "[me]"
+        Difficulty.HARD -> "[ha]"
+    }
+    this.newTextGraphics().putString(columnPositon + (padding*2), 0, difficultySetting)
+    this.newTextGraphics().putString(columnPositon + (padding*3), 1, difficultyValue)
 }
