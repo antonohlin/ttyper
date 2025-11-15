@@ -28,7 +28,10 @@ fun main() {
     screen.startScreen()
     var running = true
     while (running) {
-        val wordsFromFile = readDictionary(settingsManager.settings.value.numberOfWords).joinToString(separator = " ").toCharArray()
+        val wordsFromFile = readDictionary(
+            numberOfWordsToType = settingsManager.settings.value.numberOfWords,
+            difficulty = settingsManager.settings.value.difficulty,
+            ).joinToString(separator = " ").toCharArray()
         var timerHasBeenStarted = false
         var startTime: Long = 0
         val rawInput = StringBuilder()
@@ -53,7 +56,7 @@ fun main() {
                 if (key.character.isDigit()) {
                     val setting = key.character.toSetting()
                     settingsManager.toggleSetting(setting)
-                    if (setting == Setting.NUMBER_OF_WORDS) {
+                    if (setting == Setting.NUMBER_OF_WORDS || setting == Setting.DIFFICULTY) {
                         abortGameRound = true
                     }
                     break

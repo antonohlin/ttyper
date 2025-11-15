@@ -1,8 +1,8 @@
 import java.io.File
 import kotlin.math.roundToInt
 
-fun readDictionary(numberOfWordsToType: Int): List<String> {
-    val input = File("src/main/kotlin/dictionary")
+fun readDictionary(numberOfWordsToType: Int, difficulty: Difficulty): List<String> {
+    val input = File("dictionary")
     val dictionary = input.readLines()
     val words = mutableListOf<String>()
     repeat(numberOfWordsToType) {
@@ -51,6 +51,7 @@ fun Char.toSetting(): Setting? {
     return when (this) {
         '1' -> Setting.DETAILED_RESULT
         '2' -> Setting.NUMBER_OF_WORDS
+        '3' -> Setting.DIFFICULTY
         else -> null
     }
 }
