@@ -46,3 +46,11 @@ fun getEndGameStats(
     val accuracy = rawAccuracy.coerceIn(0.0, 100.0).roundToInt()
     return EndGameStats(wpm, elapsedTimeInSeconds, accuracy)
 }
+
+fun Char.toSetting(): Setting? {
+    return when (this) {
+        '1' -> Setting.DETAILED_RESULT
+        '2' -> Setting.NUMBER_OF_WORDS
+        else -> null
+    }
+}

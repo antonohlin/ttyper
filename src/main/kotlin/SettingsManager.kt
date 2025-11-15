@@ -22,12 +22,26 @@ class SettingsManager {
         _settings.value = getSettingsFromFile()
     }
 
-    fun toggleSetting(option: Char) {
-        // todo: pass an enum or something
-        if (option == '1') {
-            val updatedSettings = _settings.value.copy(detailedResult = !_settings.value.detailedResult)
-            _settings.update { updatedSettings }
-            saveSettingsToFile(updatedSettings)
+    fun toggleSetting(setting: Setting?) {
+        setting?.let {
+            when (it) {
+                Setting.DETAILED_RESULT -> {
+                    val updatedSettings = _settings.value.copy(detailedResult = !_settings.value.detailedResult)
+                    _settings.update { updatedSettings }
+                    saveSettingsToFile(updatedSettings)
+                }
+
+                Setting.NUMBER_OF_WORDS -> {
+                    val newNumberOfWords = when (_settings.value.numberOfWords) {
+                        20 -> 35
+                        35 -> 50
+                        else -> 20
+                    }
+                    val updatedSettings = _settings.value.copy(numberOfWords = newNumberOfWords)
+                    _settings.update { updatedSettings }
+                    saveSettingsToFile(updatedSettings)
+                }
+            }
         }
     }
 
@@ -55,4 +69,10 @@ class SettingsManager {
 @Serializable
 data class Settings(
     val detailedResult: Boolean = false,
+    val numberOfWords: Int = 20,
 )
+
+enum class Setting {
+    DETAILED_RESULT,
+    NUMBER_OF_WORDS,
+}
