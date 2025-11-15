@@ -24,11 +24,9 @@ class SettingsManager {
 
     fun toggleSetting(setting: Setting?) {
         setting?.let {
-            when (it) {
+            val updatedSettings = when (it) {
                 Setting.DETAILED_RESULT -> {
-                    val updatedSettings = _settings.value.copy(detailedResult = !_settings.value.detailedResult)
-                    _settings.update { updatedSettings }
-                    saveSettingsToFile(updatedSettings)
+                   _settings.value.copy(detailedResult = !_settings.value.detailedResult)
                 }
 
                 Setting.NUMBER_OF_WORDS -> {
@@ -37,11 +35,20 @@ class SettingsManager {
                         35 -> 50
                         else -> 20
                     }
-                    val updatedSettings = _settings.value.copy(numberOfWords = newNumberOfWords)
-                    _settings.update { updatedSettings }
-                    saveSettingsToFile(updatedSettings)
+                    _settings.value.copy(numberOfWords = newNumberOfWords)
+                }
+
+                Setting.DIFFICULTY -> {
+                    val newDifficulty = when (_settings.value.difficulty) {
+                        Difficulty.EASY -> Difficulty.MEDIUM
+                        Difficulty.MEDIUM -> Difficulty.HARD
+                        Difficulty.HARD -> Difficulty.EASY
+                    }
+                   _settings.value.copy(difficulty = newDifficulty)
                 }
             }
+            _settings.update { updatedSettings }
+            saveSettingsToFile(updatedSettings)
         }
     }
 
@@ -70,9 +77,17 @@ class SettingsManager {
 data class Settings(
     val detailedResult: Boolean = false,
     val numberOfWords: Int = 20,
+    val difficulty: Difficulty = Difficulty.MEDIUM,
 )
 
 enum class Setting {
     DETAILED_RESULT,
     NUMBER_OF_WORDS,
+    DIFFICULTY,
+}
+
+enum class Difficulty {
+    EASY,
+    MEDIUM,
+    HARD,
 }

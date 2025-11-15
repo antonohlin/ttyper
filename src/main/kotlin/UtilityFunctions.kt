@@ -1,14 +1,22 @@
 import java.io.File
 import kotlin.math.roundToInt
 
-fun readDictionary(numberOfWordsToType: Int): List<String> {
-    val input = File("src/main/kotlin/dictionary")
+fun readDictionary(numberOfWordsToType: Int, difficulty: Difficulty): List<String> {
+    val input = File("dictionary")
+    val wordsToReturn = mutableListOf<String>()
     val dictionary = input.readLines()
-    val words = mutableListOf<String>()
-    repeat(numberOfWordsToType) {
-        words.add(dictionary.random().lowercase())
+    val requiredWordLength = when (difficulty) {
+        Difficulty.EASY -> 0..6
+        Difficulty.MEDIUM -> 4..8
+        Difficulty.HARD -> 6..Int.MAX_VALUE
     }
-    return words
+    while (wordsToReturn.size < numberOfWordsToType) {
+        val word = dictionary.random().lowercase()
+        if (word.length in requiredWordLength) {
+            wordsToReturn.add(word)
+        }
+    }
+    return wordsToReturn
 }
 
 fun splitCharArrayByWidth(input: CharArray, maxPrintableWidth: Int): List<List<Char>> {
@@ -51,6 +59,7 @@ fun Char.toSetting(): Setting? {
     return when (this) {
         '1' -> Setting.DETAILED_RESULT
         '2' -> Setting.NUMBER_OF_WORDS
+        '3' -> Setting.DIFFICULTY
         else -> null
     }
 }
