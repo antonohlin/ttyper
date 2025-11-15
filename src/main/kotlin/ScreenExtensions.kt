@@ -64,5 +64,4 @@ fun Screen.drawSettings(settings: Settings) {
     val numberOfWordsSetting = "2. Words"
     this.newTextGraphics().putString(detailedResultSetting.length + padding, 0, numberOfWordsSetting)
     this.newTextGraphics().putString(detailedResultSetting.length + (padding*2), 1, "[${settings.numberOfWords}]")
-    // todo: figure out a better way to draw this
 }
