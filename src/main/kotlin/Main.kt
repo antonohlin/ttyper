@@ -19,8 +19,10 @@ fun main() {
     val rowSize = screen.terminalSize.rows
     var abortGameRound = false
     val scope = CoroutineScope(Dispatchers.IO)
+    var settings = Settings()
     scope.launch {
         settingsManager.settings.collectLatest { value ->
+            settings = value
             screen.drawSettings(value)
             screen.refresh()
         }
@@ -29,8 +31,8 @@ fun main() {
     var running = true
     while (running) {
         val wordsFromFile = readDictionary(
-            numberOfWordsToType = settingsManager.settings.value.numberOfWords,
-            difficulty = settingsManager.settings.value.difficulty,
+            numberOfWordsToType = settings.numberOfWords,
+            difficulty = settings.difficulty,
             ).joinToString(separator = " ").toCharArray()
         var timerHasBeenStarted = false
         var startTime: Long = 0
@@ -46,7 +48,7 @@ fun main() {
         val lines = splitCharArrayByWidth(wordsFromFile, printableWidth)
         var letter = 0
         var line = 0
-        screen.drawSettings(settingsManager.settings.value)
+        screen.drawSettings(settings)
         screen.drawHealth(startPosition.withRelativeRow(-1), 3, 3)
         screen.drawWords(lines, startPosition)
         screen.cursorPosition = startPosition
@@ -106,20 +108,20 @@ fun main() {
         if (!abortGameRound) {
             val endGameStats = getEndGameStats(
                 startTime,
-                settingsManager.settings.value.numberOfWords,
+                settings.numberOfWords,
                 wordsFromFile.size,
                 errorCount,
             )
             terminal.resetColorAndSGR()
             screen.drawWpmResult(
-                totalWords = settingsManager.settings.value.numberOfWords,
+                totalWords = settings.numberOfWords,
                 finalTime = endGameStats.time,
                 wpm = endGameStats.wpm,
                 accuracy = endGameStats.accuracy,
                 position = screen.cursorPosition.withRelativeRow(1).also { screen.cursorPosition = it }
             )
             val shouldDrawExpectedActualResult =
-                endGameStats.accuracy < 100 && settingsManager.settings.value.detailedResult
+                endGameStats.accuracy < 100 && settings.detailedResult
             if (shouldDrawExpectedActualResult) {
                 screen.drawExpectedActualResult(
                     actual = rawInput.toString(),
