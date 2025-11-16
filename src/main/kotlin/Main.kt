@@ -47,6 +47,7 @@ fun main() {
         var letter = 0
         var line = 0
         screen.drawSettings(settingsManager.settings.value)
+        screen.drawHealth(startPosition.withRelativeRow(-1), 3, 3)
         screen.drawWords(lines, startPosition)
         screen.cursorPosition = startPosition
         screen.refresh()

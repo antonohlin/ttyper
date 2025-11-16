@@ -56,6 +56,17 @@ fun Screen.drawCharacter(char: Char, position: TerminalPosition, color: TextColo
     }
 }
 
+fun Screen.drawHealth(position: TerminalPosition, totalHealth: Int, healthRemaining: Int) {
+    val tc = this.newTextGraphics()
+    tc.foregroundColor = red
+    val startChar = '['
+    val health = " ♥ ♥ ♥ "
+    val endChar = ']'
+    this.drawCharacter(startChar, position, white)
+    tc.putString(position.withRelativeColumn(startChar.toString().length), " ♥ ♥ ♥ ")
+    this.drawCharacter(endChar, position.withRelativeColumn(startChar.toString().length + health.length), white)
+}
+
 fun Screen.drawSettings(settings: Settings) {
     val padding = 3
     var columnPositon = 0
