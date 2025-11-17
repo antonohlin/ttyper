@@ -60,6 +60,7 @@ fun Char.toSetting(): Setting? {
         '1' -> Setting.DETAILED_RESULT
         '2' -> Setting.NUMBER_OF_WORDS
         '3' -> Setting.DIFFICULTY
+        '4' -> Setting.HEALTH
         else -> null
     }
 }

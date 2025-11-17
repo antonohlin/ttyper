@@ -20,10 +20,21 @@ fun main() {
     var abortGameRound = false
     val scope = CoroutineScope(Dispatchers.IO)
     var settings = Settings()
+    val printableWidth = when {
+        colSize * 0.7 > 100 -> 100
+        colSize * 0.7 > 80 -> 80
+        else -> 60
+    }
+    val startPosition =
+        screen.cursorPosition.withColumn(colSize / 2 - printableWidth / 2).withRow((rowSize / 3))
+    val healthPosition = startPosition.withRelativeRow(-1)
     scope.launch {
         settingsManager.settings.collectLatest { value ->
             settings = value
             screen.drawSettings(value)
+            if (settings.health != Health.DISABLED) {
+                screen.drawHealth(healthPosition, settings.health.totalHealth, settings.health.totalHealth)
+            }
             screen.refresh()
         }
     }
@@ -33,33 +44,30 @@ fun main() {
         val wordsFromFile = readDictionary(
             numberOfWordsToType = settings.numberOfWords,
             difficulty = settings.difficulty,
-            ).joinToString(separator = " ").toCharArray()
+        ).joinToString(separator = " ").toCharArray()
         var timerHasBeenStarted = false
         var startTime: Long = 0
         val rawInput = StringBuilder()
         var errorCount = 0
-        val printableWidth = when {
-            colSize * 0.7 > 100 -> 100
-            colSize * 0.7 > 80 -> 80
-            else -> 60
-        }
-        val startPosition =
-            screen.cursorPosition.withColumn(colSize / 2 - printableWidth / 2).withRow((rowSize / 3))
         val lines = splitCharArrayByWidth(wordsFromFile, printableWidth)
         var letter = 0
         var line = 0
+        var gameOver = false
         screen.drawSettings(settings)
-        screen.drawHealth(startPosition.withRelativeRow(-1), 3, 3)
-        screen.drawWords(lines, startPosition)
+        if (settings.health != Health.DISABLED) {
+            screen.drawHealth(healthPosition, settings.health.totalHealth, settings.health.totalHealth)
+        }
+        val endPosition = screen.drawWords(lines, startPosition)
+        var currentHealth = settings.health.totalHealth
         screen.cursorPosition = startPosition
         screen.refresh()
-        while (line < lines.size && !abortGameRound) {
+        while (line < lines.size && !abortGameRound && !gameOver) {
             while (letter < lines[line].size) {
                 val key = screen.readInput()
                 if (key.character.isDigit()) {
                     val setting = key.character.toSetting()
                     settingsManager.toggleSetting(setting)
-                    if (setting == Setting.NUMBER_OF_WORDS || setting == Setting.DIFFICULTY) {
+                    if (setting in roundEndingSettings) {
                         abortGameRound = true
                     }
                     break
@@ -75,6 +83,14 @@ fun main() {
                     } else {
                         errorCount++
                         screen.drawCharacter(lines[line][letter], screen.cursorPosition, red)
+                        if (settings.health != Health.DISABLED) {
+                            currentHealth--
+                            screen.drawHealth(healthPosition, settings.health.totalHealth, currentHealth)
+                            if (currentHealth < 1) {
+                                gameOver = true
+                                break
+                            }
+                        }
                     }
                     screen.cursorPosition = screen.cursorPosition.withRelativeColumn(1)
                     if (letter + 1 == lines[line].size) {
@@ -113,25 +129,35 @@ fun main() {
                 errorCount,
             )
             terminal.resetColorAndSGR()
-            screen.drawWpmResult(
-                totalWords = settings.numberOfWords,
-                finalTime = endGameStats.time,
-                wpm = endGameStats.wpm,
-                accuracy = endGameStats.accuracy,
-                position = screen.cursorPosition.withRelativeRow(1).also { screen.cursorPosition = it }
-            )
+            if (!gameOver) {
+                screen.drawWpmResult(
+                    totalWords = settings.numberOfWords,
+                    finalTime = endGameStats.time,
+                    wpm = endGameStats.wpm,
+                    accuracy = endGameStats.accuracy,
+                    position = endPosition.withRelativeRow(1).also { screen.cursorPosition = it }
+                )
+            }
             val shouldDrawExpectedActualResult =
                 endGameStats.accuracy < 100 && settings.detailedResult
             if (shouldDrawExpectedActualResult) {
                 screen.drawExpectedActualResult(
                     actual = rawInput.toString(),
                     printableWidth = printableWidth,
-                    position = screen.cursorPosition.withRelativeRow(2).also { screen.cursorPosition = it }
+                    position = if (gameOver) {
+                        endPosition.withRelativeRow(1).also { screen.cursorPosition = it }
+                    } else {
+                        screen.cursorPosition.withRelativeRow(2).also { screen.cursorPosition = it }
+                    }
                 )
             }
-            val rowBump = if (shouldDrawExpectedActualResult) 1 else 2
+            val rowBump = if (shouldDrawExpectedActualResult || gameOver) 1 else 2
             screen.drawEndPrompt(
-                screen.cursorPosition.withRelativeRow(rowBump)
+                if (gameOver && !shouldDrawExpectedActualResult) {
+                    endPosition.withRelativeRow(rowBump)
+                } else {
+                    screen.cursorPosition.withRelativeRow(rowBump)
+                }
             )
             screen.refresh()
             var awaitingTerminationInput = true

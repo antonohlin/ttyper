@@ -26,7 +26,7 @@ class SettingsManager {
         setting?.let {
             val updatedSettings = when (it) {
                 Setting.DETAILED_RESULT -> {
-                   _settings.value.copy(detailedResult = !_settings.value.detailedResult)
+                    _settings.value.copy(detailedResult = !_settings.value.detailedResult)
                 }
 
                 Setting.NUMBER_OF_WORDS -> {
@@ -44,7 +44,17 @@ class SettingsManager {
                         Difficulty.MEDIUM -> Difficulty.HARD
                         Difficulty.HARD -> Difficulty.EASY
                     }
-                   _settings.value.copy(difficulty = newDifficulty)
+                    _settings.value.copy(difficulty = newDifficulty)
+                }
+
+                Setting.HEALTH -> {
+                    val newHealth = when (_settings.value.health) {
+                        Health.DISABLED -> Health.HEALTH_THREE
+                        Health.HEALTH_ONE -> Health.DISABLED
+                        Health.HEALTH_TWO -> Health.HEALTH_ONE
+                        Health.HEALTH_THREE -> Health.HEALTH_TWO
+                    }
+                    _settings.value.copy(health = newHealth)
                 }
             }
             _settings.update { updatedSettings }
@@ -78,12 +88,23 @@ data class Settings(
     val detailedResult: Boolean = false,
     val numberOfWords: Int = 20,
     val difficulty: Difficulty = Difficulty.MEDIUM,
+    val health: Health = Health.DISABLED,
 )
 
 enum class Setting {
     DETAILED_RESULT,
     NUMBER_OF_WORDS,
     DIFFICULTY,
+    HEALTH,
+}
+
+val roundEndingSettings = listOf(Setting.NUMBER_OF_WORDS, Setting.DIFFICULTY, Setting.HEALTH)
+
+enum class Health(val totalHealth: Int) {
+    DISABLED(0),
+    HEALTH_ONE(1),
+    HEALTH_TWO(2),
+    HEALTH_THREE(3),
 }
 
 enum class Difficulty {
