@@ -39,7 +39,10 @@ fun Screen.drawWpmResult(
     this.newTextGraphics().putString(position.withColumn(centeredCol), resultString)
 }
 
-fun Screen.drawWords(words: List<List<Char>>, position: TerminalPosition) {
+/**
+ * @return end position
+ */
+fun Screen.drawWords(words: List<List<Char>>, position: TerminalPosition): TerminalPosition {
     val text = this.newTextGraphics()
     var position = position
     words.forEach {
@@ -47,6 +50,7 @@ fun Screen.drawWords(words: List<List<Char>>, position: TerminalPosition) {
         position = position.withRelativeRow(+1)
     }
     this.cursorPosition = position
+    return position
 }
 
 fun Screen.drawCharacter(char: Char, position: TerminalPosition, color: TextColor.RGB) {
@@ -54,6 +58,31 @@ fun Screen.drawCharacter(char: Char, position: TerminalPosition, color: TextColo
     tc.firstOrNull()?.let {
         this.setCharacter(position, it.withForegroundColor(color))
     }
+}
+
+fun Screen.drawHealth(position: TerminalPosition, totalHealth: Int, currentHealth: Int) {
+    val tc = this.newTextGraphics()
+    tc.foregroundColor = red
+    val startChar = '['
+    val healthBar = getHealthBar(totalHealth, currentHealth)
+    val endChar = ']'
+    this.drawCharacter(startChar, position, white)
+    tc.putString(position.withRelativeColumn(startChar.toString().length), healthBar)
+    this.drawCharacter(endChar, position.withRelativeColumn(startChar.toString().length + healthBar.length), white)
+}
+
+fun getHealthBar(totalHealth: Int, currentHealth: Int): String {
+    val missingHealth = totalHealth - currentHealth
+    val healthBar = buildString {
+        repeat(currentHealth) {
+            append(" ♥")
+        }
+        repeat(missingHealth) {
+            append("  ")
+        }
+        append(" ")
+    }
+    return healthBar
 }
 
 fun Screen.drawSettings(settings: Settings) {
@@ -65,14 +94,24 @@ fun Screen.drawSettings(settings: Settings) {
     val numberOfWordsSetting = "2. Words"
     columnPositon += detailedResultSetting.length
     this.newTextGraphics().putString(columnPositon + padding, 0, numberOfWordsSetting)
-    this.newTextGraphics().putString(columnPositon + (padding*2), 1, "[${settings.numberOfWords}]")
+    this.newTextGraphics().putString(columnPositon + (padding * 2), 1, "[${settings.numberOfWords}]")
     val difficultySetting = "3. Difficulty"
     columnPositon += numberOfWordsSetting.length
-    val difficultyValue = when (settings.difficulty){
+    val difficultyValue = when (settings.difficulty) {
         Difficulty.EASY -> "[ea]"
         Difficulty.MEDIUM -> "[me]"
         Difficulty.HARD -> "[ha]"
     }
-    this.newTextGraphics().putString(columnPositon + (padding*2), 0, difficultySetting)
-    this.newTextGraphics().putString(columnPositon + (padding*3), 1, difficultyValue)
+    this.newTextGraphics().putString(columnPositon + (padding * 2), 0, difficultySetting)
+    this.newTextGraphics().putString(columnPositon + (padding * 3), 1, difficultyValue)
+    columnPositon += difficultySetting.length
+    val healthSetting = "4. Health"
+    val healthValue = when (settings.health) {
+        Health.DISABLED -> "[-]"
+        Health.HEALTH_ONE -> "[1]"
+        Health.HEALTH_TWO -> "[2]"
+        Health.HEALTH_THREE -> "[3]"
+    }
+    this.newTextGraphics().putString(columnPositon + (padding * 3), 0, healthSetting)
+    this.newTextGraphics().putString(columnPositon + (padding * 4), 1, healthValue)
 }
