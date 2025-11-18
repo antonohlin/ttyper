@@ -1,25 +1,35 @@
 import java.io.File
 import kotlin.math.roundToInt
 
-fun readDictionary(numberOfWordsToType: Int, difficulty: Difficulty): List<String> {
+fun readDictionary(
+    numberOfWordsToType: Int,
+    difficulty: Difficulty,
+): List<String> {
     val input = File("dictionary")
-    val wordsToReturn = mutableListOf<String>()
-    val dictionary = input.readLines()
-    val requiredWordLength = when (difficulty) {
-        Difficulty.EASY -> 0..6
-        Difficulty.MEDIUM -> 4..8
-        Difficulty.HARD -> 6..Int.MAX_VALUE
-    }
-    while (wordsToReturn.size < numberOfWordsToType) {
-        val word = dictionary.random().lowercase()
-        if (word.length in requiredWordLength) {
-            wordsToReturn.add(word)
+    if (input.exists() && input.isFile && input.canRead()) {
+        val wordsToReturn = mutableListOf<String>()
+        val dictionary = input.readLines()
+        val requiredWordLength =
+            when (difficulty) {
+                Difficulty.EASY -> 0..6
+                Difficulty.MEDIUM -> 4..8
+                Difficulty.HARD -> 6..Int.MAX_VALUE
+            }
+        while (wordsToReturn.size < numberOfWordsToType) {
+            val word = dictionary.random().lowercase()
+            if (word.length in requiredWordLength) {
+                wordsToReturn.add(word)
+            }
         }
+        return wordsToReturn
     }
-    return wordsToReturn
+    return listOf("failed", "to", "load", "dictionary", "file")
 }
 
-fun splitCharArrayByWidth(input: CharArray, maxPrintableWidth: Int): List<List<Char>> {
+fun splitCharArrayByWidth(
+    input: CharArray,
+    maxPrintableWidth: Int,
+): List<List<Char>> {
     val result = mutableListOf<List<Char>>()
     var startIndex = 0
     while (startIndex < input.size) {
@@ -45,7 +55,7 @@ fun getEndGameStats(
     startTime: Long,
     numberOfWordsToType: Int,
     totalCharacters: Int,
-    errorCount: Int
+    errorCount: Int,
 ): EndGameStats {
     val endTime = System.currentTimeMillis()
     val elapsedTimeInSeconds = (endTime - startTime) / 1000
@@ -55,12 +65,11 @@ fun getEndGameStats(
     return EndGameStats(wpm, elapsedTimeInSeconds, accuracy)
 }
 
-fun Char.toSetting(): Setting? {
-    return when (this) {
+fun Char.toSetting(): Setting? =
+    when (this) {
         '1' -> Setting.DETAILED_RESULT
         '2' -> Setting.NUMBER_OF_WORDS
         '3' -> Setting.DIFFICULTY
         '4' -> Setting.HEALTH
         else -> null
     }
-}

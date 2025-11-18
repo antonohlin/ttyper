@@ -20,11 +20,12 @@ fun main() {
     var abortGameRound = false
     val scope = CoroutineScope(Dispatchers.IO)
     var settings = Settings()
-    val printableWidth = when {
-        colSize * 0.7 > 100 -> 100
-        colSize * 0.7 > 80 -> 80
-        else -> 60
-    }
+    val printableWidth =
+        when {
+            colSize * 0.7 > 100 -> 100
+            colSize * 0.7 > 80 -> 80
+            else -> 60
+        }
     val startPosition =
         screen.cursorPosition.withColumn(colSize / 2 - printableWidth / 2).withRow((rowSize / 3))
     val healthPosition = startPosition.withRelativeRow(-1)
@@ -41,10 +42,11 @@ fun main() {
     screen.startScreen()
     var running = true
     while (running) {
-        val wordsFromFile = readDictionary(
-            numberOfWordsToType = settings.numberOfWords,
-            difficulty = settings.difficulty,
-        ).joinToString(separator = " ").toCharArray()
+        val wordsFromFile =
+            readDictionary(
+                numberOfWordsToType = settings.numberOfWords,
+                difficulty = settings.difficulty,
+            ).joinToString(separator = " ").toCharArray()
         var timerHasBeenStarted = false
         var startTime: Long = 0
         val rawInput = StringBuilder()
@@ -113,7 +115,8 @@ fun main() {
                         line--
                         letter = lines[line].size - 1
                         screen.cursorPosition =
-                            screen.cursorPosition.withColumn(startPosition.column + lines[line].size - 1)
+                            screen.cursorPosition
+                                .withColumn(startPosition.column + lines[line].size - 1)
                                 .withRelativeRow(-1)
                         screen.drawCharacter(lines[line][letter], screen.cursorPosition, white)
                     }
@@ -122,12 +125,13 @@ fun main() {
             }
         }
         if (!abortGameRound) {
-            val endGameStats = getEndGameStats(
-                startTime,
-                settings.numberOfWords,
-                wordsFromFile.size,
-                errorCount,
-            )
+            val endGameStats =
+                getEndGameStats(
+                    startTime,
+                    settings.numberOfWords,
+                    wordsFromFile.size,
+                    errorCount,
+                )
             terminal.resetColorAndSGR()
             if (!gameOver) {
                 screen.drawWpmResult(
@@ -135,7 +139,7 @@ fun main() {
                     finalTime = endGameStats.time,
                     wpm = endGameStats.wpm,
                     accuracy = endGameStats.accuracy,
-                    position = endPosition.withRelativeRow(1).also { screen.cursorPosition = it }
+                    position = endPosition.withRelativeRow(1).also { screen.cursorPosition = it },
                 )
             }
             val shouldDrawExpectedActualResult =
@@ -144,11 +148,12 @@ fun main() {
                 screen.drawExpectedActualResult(
                     actual = rawInput.toString(),
                     printableWidth = printableWidth,
-                    position = if (gameOver) {
-                        endPosition.withRelativeRow(1).also { screen.cursorPosition = it }
-                    } else {
-                        screen.cursorPosition.withRelativeRow(2).also { screen.cursorPosition = it }
-                    }
+                    position =
+                        if (gameOver) {
+                            endPosition.withRelativeRow(1).also { screen.cursorPosition = it }
+                        } else {
+                            screen.cursorPosition.withRelativeRow(2).also { screen.cursorPosition = it }
+                        },
                 )
             }
             val rowBump = if (shouldDrawExpectedActualResult || gameOver) 1 else 2
@@ -157,7 +162,7 @@ fun main() {
                     endPosition.withRelativeRow(rowBump)
                 } else {
                     screen.cursorPosition.withRelativeRow(rowBump)
-                }
+                },
             )
             screen.refresh()
             var awaitingTerminationInput = true

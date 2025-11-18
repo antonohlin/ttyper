@@ -22,7 +22,7 @@ tasks.test {
     useJUnitPlatform()
 }
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(24)
 }
 
 tasks.register<Jar>("uberJar") {
