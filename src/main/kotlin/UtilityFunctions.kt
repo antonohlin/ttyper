@@ -6,24 +6,29 @@ fun readDictionary(
     difficulty: Difficulty,
 ): List<String> {
     val input = File("dictionary")
-    if (input.exists() && input.isFile && input.canRead()) {
-        val wordsToReturn = mutableListOf<String>()
-        val dictionary = input.readLines()
-        val requiredWordLength =
-            when (difficulty) {
-                Difficulty.EASY -> 0..6
-                Difficulty.MEDIUM -> 4..8
-                Difficulty.HARD -> 6..Int.MAX_VALUE
-            }
-        while (wordsToReturn.size < numberOfWordsToType) {
-            val word = dictionary.random().lowercase()
-            if (word.length in requiredWordLength) {
-                wordsToReturn.add(word)
-            }
+    val wordsToReturn = mutableListOf<String>()
+
+    val dictionary =
+        if (input.exists() && input.isFile && input.canRead()) {
+            input.readLines()
+        } else {
+            DEFAULT_DICTIONARY
         }
-        return wordsToReturn
+
+    val requiredWordLength =
+        when (difficulty) {
+            Difficulty.EASY -> 0..6
+            Difficulty.MEDIUM -> 4..8
+            Difficulty.HARD -> 6..Int.MAX_VALUE
+        }
+
+    while (wordsToReturn.size < numberOfWordsToType) {
+        val word = dictionary.random().lowercase()
+        if (word.length in requiredWordLength) {
+            wordsToReturn.add(word)
+        }
     }
-    return listOf("failed", "to", "load", "dictionary", "file")
+    return wordsToReturn
 }
 
 fun splitCharArrayByWidth(
