@@ -66,6 +66,8 @@ fun Screen.drawHealth(position: TerminalPosition, totalHealth: Int, currentHealt
     val startChar = '['
     val healthBar = getHealthBar(totalHealth, currentHealth)
     val endChar = ']'
+    this.newTextGraphics().putString(position, "         ")
+    if (totalHealth == 0) return
     this.drawCharacter(startChar, position, white)
     tc.putString(position.withRelativeColumn(startChar.toString().length), healthBar)
     this.drawCharacter(endChar, position.withRelativeColumn(startChar.toString().length + healthBar.length), white)
