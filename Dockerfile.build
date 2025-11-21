@@ -1,0 +1,4 @@
+# FROM container-registry.oracle.com/graalvm/native-image:25-muslib
+FROM ghcr.io/graalvm/native-image-community:25-muslib
+
+CMD ["native-image", "-Os", "--static", "--libc=musl", "-jar", "/input/ttyper.jar", "-o", "/output/ttyper"]
