@@ -34,9 +34,7 @@ suspend fun main() {
         settingsManager.settings.collectLatest { value ->
             settings = value
             screen.drawSettings(value)
-            if (value.health != Health.DISABLED) {
-                screen.drawHealth(healthPosition, value.health.totalHealth, value.health.totalHealth)
-            }
+            screen.drawHealth(healthPosition, value.health.totalHealth, value.health.totalHealth)
             screen.refresh()
         }
     }
