@@ -5,13 +5,14 @@ import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 val green = TextColor.RGB(100, 200, 100)
 val red = TextColor.RGB(250, 90, 90)
 val white = TextColor.RGB(255, 255, 255)
 
-fun main() {
+suspend fun main() {
     val terminal = DefaultTerminalFactory().createTerminal()
     val screen = TerminalScreen(terminal)
     val settingsManager = SettingsManager()
@@ -19,7 +20,6 @@ fun main() {
     val rowSize = screen.terminalSize.rows
     var abortGameRound = false
     val scope = CoroutineScope(Dispatchers.IO)
-    var settings = Settings()
     val printableWidth =
         when {
             colSize * 0.7 > 100 -> 100
@@ -29,12 +29,13 @@ fun main() {
     val startPosition =
         screen.cursorPosition.withColumn(colSize / 2 - printableWidth / 2).withRow((rowSize / 3))
     val healthPosition = startPosition.withRelativeRow(-1)
+    var settings = settingsManager.settings.first()
     scope.launch {
         settingsManager.settings.collectLatest { value ->
             settings = value
             screen.drawSettings(value)
-            if (settings.health != Health.DISABLED) {
-                screen.drawHealth(healthPosition, settings.health.totalHealth, settings.health.totalHealth)
+            if (value.health != Health.DISABLED) {
+                screen.drawHealth(healthPosition, value.health.totalHealth, value.health.totalHealth)
             }
             screen.refresh()
         }
