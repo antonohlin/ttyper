@@ -1,4 +1,7 @@
+@file:Suppress("ktlint:standard:no-wildcard-imports")
+
 import com.typesafe.config.ConfigFactory
+import dev.dirs.ProjectDirectories
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -11,10 +14,12 @@ import kotlin.io.path.*
 
 @OptIn(ExperimentalSerializationApi::class)
 class SettingsManager {
-    val hocon = Hocon {
-        encodeDefaults = true
-    }
-    val path = Path("settings.conf")
+    val hocon =
+        Hocon {
+            encodeDefaults = true
+        }
+    private val basepath = ProjectDirectories.from("se", "antonohlin", "ttyper").configDir
+    private val path = Path(basepath, "settings.conf")
     private val _settings = MutableStateFlow(Settings())
     val settings = _settings.asStateFlow()
 
@@ -24,62 +29,74 @@ class SettingsManager {
 
     fun toggleSetting(setting: Setting?) {
         setting?.let {
-            val updatedSettings = when (it) {
-                Setting.DETAILED_RESULT -> {
-                    _settings.value.copy(detailedResult = !_settings.value.detailedResult)
-                }
-
-                Setting.NUMBER_OF_WORDS -> {
-                    val newNumberOfWords = when (_settings.value.numberOfWords) {
-                        20 -> 35
-                        35 -> 50
-                        else -> 20
+            val updatedSettings =
+                when (it) {
+                    Setting.DETAILED_RESULT -> {
+                        _settings.value.copy(detailedResult = !_settings.value.detailedResult)
                     }
-                    _settings.value.copy(numberOfWords = newNumberOfWords)
-                }
 
-                Setting.DIFFICULTY -> {
-                    val newDifficulty = when (_settings.value.difficulty) {
-                        Difficulty.EASY -> Difficulty.MEDIUM
-                        Difficulty.MEDIUM -> Difficulty.HARD
-                        Difficulty.HARD -> Difficulty.EASY
+                    Setting.NUMBER_OF_WORDS -> {
+                        val newNumberOfWords =
+                            when (_settings.value.numberOfWords) {
+                                20 -> 35
+                                35 -> 50
+                                else -> 20
+                            }
+                        _settings.value.copy(numberOfWords = newNumberOfWords)
                     }
-                    _settings.value.copy(difficulty = newDifficulty)
-                }
 
-                Setting.HEALTH -> {
-                    val newHealth = when (_settings.value.health) {
-                        Health.DISABLED -> Health.HEALTH_THREE
-                        Health.HEALTH_ONE -> Health.DISABLED
-                        Health.HEALTH_TWO -> Health.HEALTH_ONE
-                        Health.HEALTH_THREE -> Health.HEALTH_TWO
+                    Setting.DIFFICULTY -> {
+                        val newDifficulty =
+                            when (_settings.value.difficulty) {
+                                Difficulty.EASY -> Difficulty.MEDIUM
+                                Difficulty.MEDIUM -> Difficulty.HARD
+                                Difficulty.HARD -> Difficulty.EASY
+                            }
+                        _settings.value.copy(difficulty = newDifficulty)
                     }
-                    _settings.value.copy(health = newHealth)
+
+                    Setting.HEALTH -> {
+                        val newHealth =
+                            when (_settings.value.health) {
+                                Health.DISABLED -> Health.HEALTH_THREE
+                                Health.HEALTH_ONE -> Health.DISABLED
+                                Health.HEALTH_TWO -> Health.HEALTH_ONE
+                                Health.HEALTH_THREE -> Health.HEALTH_TWO
+                            }
+                        _settings.value.copy(health = newHealth)
+                    }
                 }
-            }
             _settings.update { updatedSettings }
             saveSettingsToFile(updatedSettings)
         }
     }
 
     private fun getSettingsFromFile(): Settings {
-        val settings = if (path.exists()) {
-            val config = ConfigFactory.parseReader(path.reader())
-            hocon.decodeFromConfig<Settings>(config)
-        } else {
-            path.createFile()
-            val defaultSettings = Settings()
-            saveSettingsToFile(defaultSettings)
-            defaultSettings
-        }
+        val settings =
+            if (path.exists()) {
+                val config = ConfigFactory.parseReader(path.reader())
+                hocon.decodeFromConfig<Settings>(config)
+            } else {
+                Path(basepath).apply {
+                    if (!exists() || !isDirectory()) {
+                        createDirectory()
+                    }
+                }
+                path.createFile()
+                val defaultSettings = Settings()
+                saveSettingsToFile(defaultSettings)
+                defaultSettings
+            }
         return settings
     }
 
     private fun saveSettingsToFile(settings: Settings) {
         val config = hocon.encodeToConfig(settings)
-        path.writer().apply {
-            write(config.root().render())
-        }.close()
+        path
+            .writer()
+            .apply {
+                write(config.root().render())
+            }.close()
     }
 }
 
@@ -100,7 +117,9 @@ enum class Setting {
 
 val roundEndingSettings = listOf(Setting.NUMBER_OF_WORDS, Setting.DIFFICULTY, Setting.HEALTH)
 
-enum class Health(val totalHealth: Int) {
+enum class Health(
+    val totalHealth: Int,
+) {
     DISABLED(0),
     HEALTH_ONE(1),
     HEALTH_TWO(2),
