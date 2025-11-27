@@ -15,6 +15,7 @@ dependencies {
     implementation("com.googlecode.lanterna:lanterna:3.1.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-hocon:1.9.0")
+    implementation("dev.dirs:directories:26")
 }
 
 tasks.test {
