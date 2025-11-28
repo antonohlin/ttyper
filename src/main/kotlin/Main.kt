@@ -12,7 +12,12 @@ val green = TextColor.RGB(100, 200, 100)
 val red = TextColor.RGB(250, 90, 90)
 val white = TextColor.RGB(255, 255, 255)
 
-suspend fun main() {
+suspend fun main(args: Array<String>) {
+    val argumentManager = ArgumentManager(args)
+    if (argumentManager.command is ArgCommand.Version){
+        println(argumentManager.command.version)
+        return
+    }
     val terminal = DefaultTerminalFactory().createTerminal()
     val screen = TerminalScreen(terminal)
     val settingsManager = SettingsManager()

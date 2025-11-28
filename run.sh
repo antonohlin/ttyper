@@ -22,5 +22,5 @@ if [ $build -eq 1 ]; then
   ./gradlew --no-daemon uberJar --console=plain
 fi
 
-java --enable-native-access=ALL-UNNAMED -jar build/libs/ttyper.jar
+java --enable-native-access=ALL-UNNAMED -jar build/libs/ttyper.jar $@
 

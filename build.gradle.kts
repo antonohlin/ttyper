@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "se.antonohlin"
-version = "1.0-SNAPSHOT"
+version = "0.0.2"
 
 repositories {
     mavenCentral()
@@ -49,6 +49,7 @@ tasks.register<BuiltInDictionaryGenerator>("generateDict") {
 
 tasks.build {
     dependsOn("generateDict")
+    dependsOn("version")
 }
 
 tasks.register<Jar>("uberJar") {
@@ -68,4 +69,8 @@ tasks.register<Jar>("uberJar") {
                 it.name.endsWith("jar")
             }.map { zipTree(it) }
     })
+}
+
+tasks.register("version") {
+
 }
