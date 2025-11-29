@@ -49,7 +49,7 @@ tasks.register<BuiltInDictionaryGenerator>("generateDict") {
 
 tasks.build {
     dependsOn("generateDict")
-    dependsOn("version")
+    dependsOn("generateVersion")
 }
 
 tasks.register<Jar>("uberJar") {
@@ -71,6 +71,11 @@ tasks.register<Jar>("uberJar") {
     })
 }
 
-tasks.register("version") {
-
+tasks.register("generateVersion") {
+    println("Generating version file for version: $version")
+    generatedSrcDir.get().asFile.resolve("Version.kt").writeText(
+        """object Version {
+    val version = "$version"
+}""".trimIndent()
+    )
 }

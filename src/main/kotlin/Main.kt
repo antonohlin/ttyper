@@ -14,9 +14,18 @@ val white = TextColor.RGB(255, 255, 255)
 
 suspend fun main(args: Array<String>) {
     val argumentManager = ArgumentManager(args)
-    if (argumentManager.command is ArgCommand.Version){
-        println(argumentManager.command.version)
-        return
+    when (argumentManager.command) {
+        is ArgCommand.Version -> {
+            println(argumentManager.command.version)
+            return
+        }
+
+        is ArgCommand.Unknown -> {
+            println(argumentManager.getHelpContent())
+            return
+        }
+
+        else -> {}
     }
     val terminal = DefaultTerminalFactory().createTerminal()
     val screen = TerminalScreen(terminal)
