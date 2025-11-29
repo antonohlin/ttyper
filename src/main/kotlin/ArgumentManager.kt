@@ -7,6 +7,7 @@ class ArgumentManager(args: Array<String>) {
             args.size > 1 -> ArgCommand.TooMany
             args.contains("-v") ||
                     args.contains("--version".lowercase()) -> ArgCommand.Version(Version.version)
+            args.contains("-b") -> ArgCommand.Build
             else -> ArgCommand.Unknown
         }
     }
@@ -22,5 +23,6 @@ sealed interface ArgCommand {
     data class Version (val version: String) : ArgCommand
     data object None : ArgCommand
     data object TooMany : ArgCommand
+    data object Build : ArgCommand
     data object Unknown : ArgCommand
 }
