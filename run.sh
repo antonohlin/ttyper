@@ -23,7 +23,7 @@ while getopts ":h?b" opt; do
 done
 
 if [ $build -eq 1 ]; then
-  ./gradlew --no-daemon uberJar --console=plain
+  ./gradlew uberJar --console=plain || exit 1
 fi
 
-java --enable-native-access=ALL-UNNAMED -jar build/libs/ttyper.jar $@
+java --enable-native-access=ALL-UNNAMED -jar build/libs/ttyper.jar "$@"

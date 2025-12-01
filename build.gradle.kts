@@ -27,28 +27,7 @@ kotlin {
 
 val generatedSrcDir = project.layout.buildDirectory.dir("generated/src/main/kotlin")
 
-sourceSets {
-    main {
-        compileClasspath += project.files(generatedSrcDir)
-        println(compileClasspath.files)
-    }
-}
-
-tasks.register<BuiltInDictionaryGenerator>("generateDict") {
-    sourceText = File(projectDir, "dictionary")
-    outputPath = generatedSrcDir
-
-    generateDictionaryClass() // take dictionary textfile and make a kotlin list of it
-
-    sourceSets.named("main").configure {
-        extensions
-            .getByName<SourceDirectorySet>("kotlin")
-            .srcDirs(generatedSrcDir)
-    }
-}
-
 tasks.build {
-    dependsOn("generateDict")
     dependsOn("generateVersion")
 }
 
@@ -69,13 +48,22 @@ tasks.register<Jar>("uberJar") {
                 it.name.endsWith("jar")
             }.map { zipTree(it) }
     })
+    from("reachability-metadata.json") { into("META-INF/native-image/se.antonohlin/ttyper") }
 }
 
 tasks.register("generateVersion") {
     println("Generating version file for version: $version")
-    generatedSrcDir.get().asFile.resolve("Version.kt").writeText(
-        """object Version {
+    generatedSrcDir.get().asFile.apply {
+        mkdirs()
+        resolve("Version.kt").writeText(
+            """object Version {
     val version = "$version"
 }""".trimIndent()
-    )
+        )
+    }
+    sourceSets.named("main").configure {
+        extensions
+            .getByName<SourceDirectorySet>("kotlin")
+            .srcDirs(generatedSrcDir)
+    }
 }
