@@ -48,6 +48,7 @@ tasks.register<Jar>("uberJar") {
                 it.name.endsWith("jar")
             }.map { zipTree(it) }
     })
+    from("reachability-metadata.json") { into("META-INF/native-image/se.antonohlin/ttyper") }
 }
 
 tasks.register("generateVersion") {
