@@ -12,7 +12,7 @@ fun readDictionary(
         if (input.exists() && input.isFile && input.canRead()) {
             input.readLines()
         } else {
-            DEFAULT_DICTIONARY
+            Thread.currentThread().contextClassLoader.getResource("dictionary")?.readText()?.lines() ?: listOf("no", "dictionary", "found")
         }
 
     val requiredWordLength =
