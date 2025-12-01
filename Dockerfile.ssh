@@ -1,0 +1,9 @@
+#FROM alpine
+FROM hermsi/alpine-sshd
+COPY nativebuild/ttyper /
+EXPOSE 22
+RUN apk add -U shadow       #bring in `usermod`
+RUN usermod -s /ttyper root
+VOLUME /root/.config
+# CMD ["/ttyper"]
+
