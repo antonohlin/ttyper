@@ -1,53 +1,67 @@
 #!/bin/sh
 
-script_path="$0"
-while [ -L "$script_path" ]; do
-    link_target="$(readlink "$script_path")"
+run_path="$0"
+while [ -L "$run_path" ]; do
+    link_target="$(readlink "$run_path")"
     case "$link_target" in
-    /*) script_path="$link_target" ;;
-    *) script_path="$(dirname "$script_path")/$link_target" ;;
+    /*) run_path="$link_target" ;;
+    *) run_path="$(dirname "$run_path")/$link_target" ;;
     esac
 done
-script_path="$(cd "$(dirname "$script_path")" && pwd)/$(basename "$script_path")"
-script_directory="$(dirname "$script_path")"
+run_path="$(cd "$(dirname "$run_path")" && pwd)/$(basename "$run_path")"
+run_directory="$(dirname "$run_path")"
 
 build=0
+install=0
 
 show_help() {
-  echo "./run.sh to run"
-  echo "./run.sh -b to build and run"
-  echo "./run.sh -v or --version to print version"
+    echo "./run.sh to run"
+    echo "./run.sh -b to build and run"
+    echo "./run.sh -i to install"
+    echo "./run.sh -v or --version to print version"
 }
 
-while getopts ":h?b" opt; do
-  case "$opt" in
+# Check for long version flag before getopts parses it
+for arg in "$@"; do
+    if [ "$arg" = "--version" ]; then
+        long_version_flag=true
+        break
+    fi
+done
+
+while getopts ":h?biv" opt; do
+    case "$opt" in
     h)
-      show_help
-      exit 0
-      ;;
-    b)  build=1
-      ;;
+        show_help
+        exit 0
+        ;;
+    b)
+        build=1
+        ;;
+    i)
+        install=1
+        ;;
+    v)
+        # Handled in ArgumentManager
+        ;;
     *)
-      # invalid options are ignored as they could be valid in-game options. Handle in ArgumentManager.
-      ;;
-  esac
+
+        if [ "$long_version_flag" = true ]; then
+            break
+        fi
+        echo "Error: Unknown option '-$OPTARG'"
+        show_help
+        exit 1
+        ;;
+    esac
 done
 
 if [ $build -eq 1 ]; then
     ./gradlew uberJar --console=plain || exit 1
-
-    INSTALL_DIR="$HOME/.local/bin"
-
-    case ":$PATH:" in
-    *":$INSTALL_DIR:"*) ;;
-    *)
-        echo "Warning: $INSTALL_DIR is not in your PATH. You won't be able to run 'ttyper' globally."
-        ;;
-    esac
-
-    mkdir -p "$INSTALL_DIR"
-    ln -sf "$script_directory/run.sh" "$INSTALL_DIR/ttyper"
-    echo "Installed symlink: $INSTALL_DIR/ttyper"
 fi
 
-java --enable-native-access=ALL-UNNAMED -jar "$script_directory/build/libs/ttyper.jar" "$@"
+if [ $install -eq 1 ]; then
+    "$run_directory/install.sh"
+fi
+
+java --enable-native-access=ALL-UNNAMED -jar "$run_directory/build/libs/ttyper.jar" "$@"
