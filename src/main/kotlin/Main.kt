@@ -20,11 +20,6 @@ suspend fun main(args: Array<String>) {
             return
         }
 
-        is ArgCommand.Unknown -> {
-            println(argumentManager.getHelpContent())
-            return
-        }
-
         else -> {}
     }
     val terminal = DefaultTerminalFactory().createTerminal()
