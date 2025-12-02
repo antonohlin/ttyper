@@ -21,15 +21,22 @@ show_help() {
     echo "./run.sh -v or --version to print version"
 }
 
-# Check for long version flag before getopts parses it
-for arg in "$@"; do
-    if [ "$arg" = "--version" ]; then
-        long_version_flag=true
-        break
-    fi
+
+filtered_arguments=()
+
+for argument in "$@"; do
+    case "$argument" in
+        --*)
+            # ignore long flags
+            ;;
+        *)
+            filtered_arguments+=("$argument")
+            ;;
+    esac
 done
 
-while getopts ":h?biv" opt; do
+set -- "${filtered_arguments[@]}"
+while getopts "hbi" opt; do
     case "$opt" in
     h)
         show_help
@@ -41,17 +48,8 @@ while getopts ":h?biv" opt; do
     i)
         install=1
         ;;
-    v)
-        # Handled in ArgumentManager
-        ;;
     *)
-
-        if [ "$long_version_flag" = true ]; then
-            break
-        fi
-        echo "Error: Unknown option '-$OPTARG'"
-        show_help
-        exit 1
+        # invalid options are ignored as they could be valid in-game options. Handle in ArgumentManager.
         ;;
     esac
 done
