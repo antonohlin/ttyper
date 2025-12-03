@@ -72,13 +72,10 @@ class SettingsManager {
     }
 
     private fun getSettingsFromFile(): Settings {
-        val settings =
+        return runCatching {
             if (path.exists()) {
-                val readResult = runCatching {
-                    val config = ConfigFactory.parseReader(path.reader())
-                    hocon.decodeFromConfig<Settings>(config)
-                }
-                readResult.getOrDefault(Settings())
+                val config = ConfigFactory.parseReader(path.reader())
+                hocon.decodeFromConfig<Settings>(config)
             } else {
                 Path(basepath).apply {
                     if (!exists() || !isDirectory()) {
@@ -90,7 +87,7 @@ class SettingsManager {
                 saveSettingsToFile(defaultSettings)
                 defaultSettings
             }
-        return settings
+        }.getOrDefault(Settings())
     }
 
     private fun saveSettingsToFile(settings: Settings) {
