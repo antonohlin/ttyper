@@ -70,7 +70,6 @@ fun Screen.drawHealth(position: TerminalPosition, totalHealth: Int, currentHealt
 }
 
 fun getHealthBar(currentHealth: Int): String {
-    FileLogger.log("currentHealth: $currentHealth")
     val healthBar = buildString {
         repeat(currentHealth) {
             append("\u2665 ")
