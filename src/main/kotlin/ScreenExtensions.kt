@@ -63,26 +63,18 @@ fun Screen.drawCharacter(char: Char, position: TerminalPosition, color: TextColo
 fun Screen.drawHealth(position: TerminalPosition, totalHealth: Int, currentHealth: Int) {
     val tc = this.newTextGraphics()
     tc.foregroundColor = red
-    val startChar = '['
-    val healthBar = getHealthBar(totalHealth, currentHealth)
-    val endChar = ']'
+    val healthBar = getHealthBar(currentHealth)
     this.newTextGraphics().putString(position, "         ")
     if (totalHealth == 0) return
-    this.drawCharacter(startChar, position, white)
-    tc.putString(position.withRelativeColumn(startChar.toString().length), healthBar)
-    this.drawCharacter(endChar, position.withRelativeColumn(startChar.toString().length + healthBar.length), white)
+    tc.putString(position, healthBar)
 }
 
-fun getHealthBar(totalHealth: Int, currentHealth: Int): String {
-    val missingHealth = totalHealth - currentHealth
+fun getHealthBar(currentHealth: Int): String {
+    FileLogger.log("currentHealth: $currentHealth")
     val healthBar = buildString {
         repeat(currentHealth) {
-            append(" ♥")
+            append("\u2665 ")
         }
-        repeat(missingHealth) {
-            append("  ")
-        }
-        append(" ")
     }
     return healthBar
 }
