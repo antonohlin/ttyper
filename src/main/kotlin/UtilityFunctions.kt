@@ -7,12 +7,34 @@ fun readDictionary(
 ): List<String> {
     val input = File("dictionary")
     val wordsToReturn = mutableListOf<String>()
-
+    val fallbackWords = listOf(
+        "no",
+        "dictionary",
+        "found",
+        "and",
+        "that",
+        "is",
+        "very",
+        "unfortunate",
+        "but",
+        "at",
+        "least",
+        "you",
+        "can",
+        "still",
+        "enjoy",
+        "this",
+        "fallback",
+        "list",
+        "of",
+        "words"
+    )
     val dictionary =
         if (input.exists() && input.isFile && input.canRead()) {
             input.readLines()
         } else {
-            Thread.currentThread().contextClassLoader.getResource("dictionary")?.readText()?.lines() ?: listOf("no", "dictionary", "found")
+            Thread.currentThread().contextClassLoader.getResource("dictionary")?.readText()?.lines()
+                ?: return fallbackWords
         }
 
     val requiredWordLength =
@@ -22,10 +44,19 @@ fun readDictionary(
             Difficulty.HARD -> 6..Int.MAX_VALUE
         }
 
+    var failedAddAttempts = 0
     while (wordsToReturn.size < numberOfWordsToType) {
         val word = dictionary.random().lowercase()
-        if (word.length in requiredWordLength) {
+        if (word.length in requiredWordLength && word !in wordsToReturn) {
             wordsToReturn.add(word)
+            failedAddAttempts = 0
+        } else {
+            if (failedAddAttempts == 5) {
+                wordsToReturn.add(word)
+                failedAddAttempts = 0
+            } else {
+                failedAddAttempts++
+            }
         }
     }
     return wordsToReturn

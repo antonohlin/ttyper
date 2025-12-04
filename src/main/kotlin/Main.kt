@@ -54,12 +54,13 @@ suspend fun main(args: Array<String>) {
             readDictionary(
                 numberOfWordsToType = settings.numberOfWords,
                 difficulty = settings.difficulty,
-            ).joinToString(separator = " ").toCharArray()
+            )
+        val wordsAsChars = wordsFromFile.joinToString(separator = " ").toCharArray()
         var timerHasBeenStarted = false
         var startTime: Long = 0
         val rawInput = StringBuilder()
         var errorCount = 0
-        val lines = splitCharArrayByWidth(wordsFromFile, printableWidth)
+        val lines = splitCharArrayByWidth(wordsAsChars, printableWidth)
         var letter = 0
         var line = 0
         var gameOver = false
@@ -136,14 +137,14 @@ suspend fun main(args: Array<String>) {
             val endGameStats =
                 getEndGameStats(
                     startTime,
-                    settings.numberOfWords,
                     wordsFromFile.size,
+                    wordsAsChars.size,
                     errorCount,
                 )
             terminal.resetColorAndSGR()
             if (!gameOver) {
                 screen.drawWpmResult(
-                    totalWords = settings.numberOfWords,
+                    totalWords = wordsFromFile.size,
                     finalTime = endGameStats.time,
                     wpm = endGameStats.wpm,
                     accuracy = endGameStats.accuracy,
