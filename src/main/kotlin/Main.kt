@@ -1,3 +1,4 @@
+import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.screen.TerminalScreen
@@ -14,14 +15,20 @@ val white = TextColor.RGB(255, 255, 255)
 
 suspend fun main(args: Array<String>) {
     val argumentManager = ArgumentManager(args)
-    when (argumentManager.command) {
+    var seed: String? = null
+    when (val arg = argumentManager.command) {
         is ArgCommand.Version -> {
-            println(argumentManager.command.version)
+            println(arg.version)
             return
+        }
+
+        is ArgCommand.Seed -> {
+            seed = arg.seed
         }
 
         else -> {}
     }
+    val seedProvided = seed != null
     val terminal = DefaultTerminalFactory().createTerminal()
     val screen = TerminalScreen(terminal)
     val settingsManager = SettingsManager()
@@ -39,9 +46,15 @@ suspend fun main(args: Array<String>) {
         screen.cursorPosition.withColumn(colSize / 2 - printableWidth / 2).withRow((rowSize / 3))
     val healthPosition = startPosition.withRelativeRow(-1)
     var settings = settingsManager.settings.first()
+    if (!seedProvided) {
+        seed = generateSeed(settings.difficulty, settings.numberOfWords)
+    }
     scope.launch {
         settingsManager.settings.collectLatest { value ->
             settings = value
+            if (!seedProvided) {
+                seed = generateSeed(value.difficulty, value.numberOfWords)
+            }
             screen.drawSettings(value)
             screen.drawHealth(healthPosition, value.health.totalHealth, value.health.totalHealth)
             screen.refresh()
@@ -54,6 +67,7 @@ suspend fun main(args: Array<String>) {
             readDictionary(
                 numberOfWordsToType = settings.numberOfWords,
                 difficulty = settings.difficulty,
+                seed = seed,
             )
         val wordsAsChars = wordsFromFile.joinToString(separator = " ").toCharArray()
         var timerHasBeenStarted = false
@@ -64,6 +78,7 @@ suspend fun main(args: Array<String>) {
         var letter = 0
         var line = 0
         var gameOver = false
+        screen.drawSeed(TerminalPosition(colSize - seed.length, rowSize - 1), seed)
         screen.drawSettings(settings)
         if (settings.health != Health.DISABLED) {
             screen.drawHealth(healthPosition, settings.health.totalHealth, settings.health.totalHealth)

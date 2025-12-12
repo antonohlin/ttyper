@@ -2,6 +2,7 @@ import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TextCharacter.fromCharacter
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.screen.Screen
+import javax.swing.text.Position
 
 fun Screen.drawEndPrompt(position: TerminalPosition) {
     val prompt = "Press Q to quit or R to replay"
@@ -67,6 +68,10 @@ fun Screen.drawHealth(position: TerminalPosition, totalHealth: Int, currentHealt
     this.newTextGraphics().putString(position, "         ")
     if (totalHealth == 0) return
     tc.putString(position, healthBar)
+}
+
+fun Screen.drawSeed(position: TerminalPosition, seed: String) {
+    this.newTextGraphics().putString(position, seed)
 }
 
 fun getHealthBar(currentHealth: Int): String {
