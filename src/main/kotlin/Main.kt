@@ -1,3 +1,4 @@
+import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.screen.TerminalScreen
@@ -47,6 +48,8 @@ suspend fun main(args: Array<String>) {
             screen.refresh()
         }
     }
+    val seed = generateSeed(settings.difficulty)
+    screen.drawSeed(TerminalPosition(colSize - seed.length, rowSize - 1), seed)
     screen.startScreen()
     var running = true
     while (running) {
@@ -54,6 +57,7 @@ suspend fun main(args: Array<String>) {
             readDictionary(
                 numberOfWordsToType = settings.numberOfWords,
                 difficulty = settings.difficulty,
+                seed = seed,
             )
         val wordsAsChars = wordsFromFile.joinToString(separator = " ").toCharArray()
         var timerHasBeenStarted = false

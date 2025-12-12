@@ -1,52 +1,27 @@
 import java.io.File
 import kotlin.math.roundToInt
+import kotlin.random.Random
 
 fun readDictionary(
     numberOfWordsToType: Int,
     difficulty: Difficulty,
+    seed: String? = null,
 ): List<String> {
-    val input = File("dictionary")
     val wordsToReturn = mutableListOf<String>()
-    val fallbackWords = listOf(
-        "no",
-        "dictionary",
-        "found",
-        "and",
-        "that",
-        "is",
-        "very",
-        "unfortunate",
-        "but",
-        "at",
-        "least",
-        "you",
-        "can",
-        "still",
-        "enjoy",
-        "this",
-        "fallback",
-        "list",
-        "of",
-        "words"
-    )
-    val dictionary =
-        if (input.exists() && input.isFile && input.canRead()) {
-            input.readLines()
-        } else {
-            Thread.currentThread().contextClassLoader.getResource("dictionary")?.readText()?.lines()
-                ?: return fallbackWords
-        }
-
+    val seedData = getSeedData(seed)
+    val dictionary = getDictionaryResource()
+    val difficulty = seedData?.difficulty ?: difficulty
     val requiredWordLength =
         when (difficulty) {
             Difficulty.EASY -> 0..6
             Difficulty.MEDIUM -> 4..8
             Difficulty.HARD -> 6..Int.MAX_VALUE
         }
-
     var failedAddAttempts = 0
+    val seed = seedData?.seed ?: System.currentTimeMillis().toInt()
+    val random = Random(seed)
     while (wordsToReturn.size < numberOfWordsToType) {
-        val word = dictionary.random().lowercase()
+        val word = dictionary.random(random).lowercase()
         if (word.length in requiredWordLength && word !in wordsToReturn) {
             wordsToReturn.add(word)
             failedAddAttempts = 0
@@ -60,6 +35,26 @@ fun readDictionary(
         }
     }
     return wordsToReturn
+}
+
+fun getSeedData(seed: String?): DictionarySeed? {
+    val seed = seed?.lowercase() ?: return null
+    return try {
+        val difficultyIdentifier = seed.first()
+        val difficulty = when (difficultyIdentifier) {
+            'e' -> Difficulty.EASY
+            'm' -> Difficulty.MEDIUM
+            'h' -> Difficulty.HARD
+            else -> throw IllegalArgumentException("Unexpected difficulty identifier in seed")
+        }
+        val seedValue = seed.drop(1).toInt()
+        DictionarySeed(
+            difficulty = difficulty,
+            seed = seedValue,
+        )
+    } catch (e: Exception) {
+        null
+    }
 }
 
 fun splitCharArrayByWidth(
@@ -109,3 +104,55 @@ fun Char.toSetting(): Setting? =
         '4' -> Setting.HEALTH
         else -> null
     }
+
+fun generateSeed(difficulty: Difficulty): String {
+    val difficultyChar = when (difficulty) {
+        Difficulty.EASY -> 'e'
+        Difficulty.MEDIUM -> 'm'
+        Difficulty.HARD -> 'h'
+    }
+    val seed = buildString {
+        append(difficultyChar)
+        append(System.currentTimeMillis().toInt())
+    }
+   return seed
+}
+
+fun getDictionaryResource(): List<String> {
+    val path = "dictionary"
+    val input = File(path)
+    return if (input.exists() && input.isFile && input.canRead()) {
+        input.readLines()
+    } else {
+        Thread.currentThread().contextClassLoader.getResource(path)?.readText()?.lines()
+            ?: getFallbackDictionary()
+    }
+}
+
+fun getFallbackDictionary() = listOf(
+    "no",
+    "dictionary",
+    "found",
+    "and",
+    "that",
+    "is",
+    "very",
+    "unfortunate",
+    "but",
+    "at",
+    "least",
+    "you",
+    "can",
+    "still",
+    "enjoy",
+    "this",
+    "fallback",
+    "list",
+    "of",
+    "words"
+)
+
+data class DictionarySeed(
+    val difficulty: Difficulty,
+    val seed: Int,
+)
