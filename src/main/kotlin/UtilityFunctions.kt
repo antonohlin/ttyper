@@ -10,6 +10,7 @@ fun readDictionary(
     val wordsToReturn = mutableListOf<String>()
     val seedData = getSeedData(seed)
     val dictionary = getDictionaryResource()
+    val numberOfWords = seedData?.numberOfWords ?: numberOfWordsToType
     val difficulty = seedData?.difficulty ?: difficulty
     val requiredWordLength =
         when (difficulty) {
@@ -20,7 +21,7 @@ fun readDictionary(
     var failedAddAttempts = 0
     val seed = seedData?.seed ?: System.currentTimeMillis().toInt()
     val random = Random(seed)
-    while (wordsToReturn.size < numberOfWordsToType) {
+    while (wordsToReturn.size < numberOfWords) {
         val word = dictionary.random(random).lowercase()
         if (word.length in requiredWordLength && word !in wordsToReturn) {
             wordsToReturn.add(word)
@@ -40,15 +41,17 @@ fun readDictionary(
 fun getSeedData(seed: String?): DictionarySeed? {
     val seed = seed?.lowercase() ?: return null
     return try {
-        val difficultyIdentifier = seed.first()
+        val numberOfWords = seed.takeWhile { it.isDigit() }.toInt()
+        val difficultyIdentifier = seed.first { !it.isDigit() }
+        val seedValue = seed.substringAfter(difficultyIdentifier).toInt()
         val difficulty = when (difficultyIdentifier) {
             'e' -> Difficulty.EASY
             'm' -> Difficulty.MEDIUM
             'h' -> Difficulty.HARD
             else -> throw IllegalArgumentException("Unexpected difficulty identifier in seed")
         }
-        val seedValue = seed.drop(1).toInt()
         DictionarySeed(
+            numberOfWords = numberOfWords,
             difficulty = difficulty,
             seed = seedValue,
         )
@@ -105,17 +108,18 @@ fun Char.toSetting(): Setting? =
         else -> null
     }
 
-fun generateSeed(difficulty: Difficulty): String {
+fun generateSeed(difficulty: Difficulty, numberOfWordsToType: Int): String {
     val difficultyChar = when (difficulty) {
         Difficulty.EASY -> 'e'
         Difficulty.MEDIUM -> 'm'
         Difficulty.HARD -> 'h'
     }
     val seed = buildString {
+        append(numberOfWordsToType)
         append(difficultyChar)
         append(System.currentTimeMillis().toInt())
     }
-   return seed
+    return seed
 }
 
 fun getDictionaryResource(): List<String> {
@@ -153,6 +157,7 @@ fun getFallbackDictionary() = listOf(
 )
 
 data class DictionarySeed(
+    val numberOfWords: Int,
     val difficulty: Difficulty,
     val seed: Int,
 )

@@ -40,16 +40,16 @@ suspend fun main(args: Array<String>) {
         screen.cursorPosition.withColumn(colSize / 2 - printableWidth / 2).withRow((rowSize / 3))
     val healthPosition = startPosition.withRelativeRow(-1)
     var settings = settingsManager.settings.first()
+    var seed = generateSeed(settings.difficulty, settings.numberOfWords)
     scope.launch {
         settingsManager.settings.collectLatest { value ->
             settings = value
+            seed = generateSeed(value.difficulty, value.numberOfWords)
             screen.drawSettings(value)
             screen.drawHealth(healthPosition, value.health.totalHealth, value.health.totalHealth)
             screen.refresh()
         }
     }
-    val seed = generateSeed(settings.difficulty)
-    screen.drawSeed(TerminalPosition(colSize - seed.length, rowSize - 1), seed)
     screen.startScreen()
     var running = true
     while (running) {
@@ -68,6 +68,7 @@ suspend fun main(args: Array<String>) {
         var letter = 0
         var line = 0
         var gameOver = false
+        screen.drawSeed(TerminalPosition(colSize - seed.length, rowSize - 1), seed)
         screen.drawSettings(settings)
         if (settings.health != Health.DISABLED) {
             screen.drawHealth(healthPosition, settings.health.totalHealth, settings.health.totalHealth)
