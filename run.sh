@@ -18,7 +18,8 @@ show_help() {
     echo "./run.sh to run"
     echo "./run.sh -b to build and run"
     echo "./run.sh -i to install"
-    echo "./run.sh -v or --version to print version"
+    echo "./run.sh -v to print version"
+    echo "./run.sh -s <seed> to provide game seed"
 }
 
 
@@ -36,7 +37,7 @@ for argument in "$@"; do
 done
 
 set -- "${filtered_arguments[@]}"
-while getopts "hbi" opt; do
+while getopts ":hbi" opt; do
     case "$opt" in
     h)
         show_help
