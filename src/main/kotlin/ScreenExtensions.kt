@@ -74,6 +74,11 @@ fun Screen.drawSeed(position: TerminalPosition, seed: String) {
     this.newTextGraphics().putString(position, seed)
 }
 
+fun Screen.drawSpecialKeyCommands(position: TerminalPosition) {
+    val specialKeyCommands = "[QQ] Quit   [Esc] New Round"
+    this.newTextGraphics().putString(position, specialKeyCommands)
+}
+
 fun getHealthBar(currentHealth: Int): String {
     val healthBar = buildString {
         repeat(currentHealth) {

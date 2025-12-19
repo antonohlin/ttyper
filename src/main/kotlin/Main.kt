@@ -78,6 +78,7 @@ suspend fun main(args: Array<String>) {
         var letter = 0
         var line = 0
         var gameOver = false
+        screen.drawSpecialKeyCommands(TerminalPosition(0, rowSize - 1))
         seed?.let {
             screen.drawSeed(TerminalPosition(colSize - seed.length, rowSize - 1), seed)
         }
@@ -89,9 +90,14 @@ suspend fun main(args: Array<String>) {
         var currentHealth = settings.health.totalHealth
         screen.cursorPosition = startPosition
         screen.refresh()
+        var specialInputCommand = ""
         while (line < lines.size && !abortGameRound && !gameOver) {
             while (letter < lines[line].size) {
                 val key = screen.readInput()
+                if (key.keyType == KeyType.Escape) {
+                    abortGameRound = true
+                }
+                if (key.keyType != KeyType.Backspace && key.keyType != KeyType.Character) break
                 if (key.character.isDigit()) {
                     val setting = key.character.toSetting()
                     settingsManager.toggleSetting(setting)
@@ -105,6 +111,14 @@ suspend fun main(args: Array<String>) {
                     timerHasBeenStarted = true
                 }
                 if (key.keyType != KeyType.Backspace) {
+                    if (key.character.isUpperCase()) {
+                        specialInputCommand += key.character
+                        if (specialInputCommand == "QQ") {
+                            abortGameRound = true
+                            running = false
+                            break
+                        }
+                    }
                     rawInput.append(key.character)
                     if (key.character == lines[line][letter]) {
                         screen.drawCharacter(key.character, screen.cursorPosition, green)
@@ -146,6 +160,9 @@ suspend fun main(args: Array<String>) {
                                 .withRelativeRow(-1)
                         screen.drawCharacter(lines[line][letter], screen.cursorPosition, white)
                     }
+                }
+                if (specialInputCommand.length == 2) {
+                    specialInputCommand = ""
                 }
                 screen.refresh()
             }
@@ -194,21 +211,21 @@ suspend fun main(args: Array<String>) {
             var awaitingTerminationInput = true
             while (awaitingTerminationInput) {
                 val endPromptInput = screen.readInput()
-                endPromptInput.character.lowercaseChar().apply {
+                endPromptInput.apply {
                     when {
-                        this.isDigit() -> {
-                            val setting = this.toSetting()
+                        this.keyType == KeyType.Escape || this.character.lowercaseChar() == 'r' -> {
+                            screen.clear()
+                            awaitingTerminationInput = false
+                        }
+
+                        this.character.isDigit() -> {
+                            val setting = this.character.toSetting()
                             settingsManager.toggleSetting(setting)
                         }
 
-                        this == 'q' -> {
+                        this.character.lowercaseChar() == 'q' -> {
                             awaitingTerminationInput = false
                             running = false
-                        }
-
-                        this == 'r' -> {
-                            screen.clear()
-                            awaitingTerminationInput = false
                         }
                     }
                 }
